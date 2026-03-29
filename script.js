@@ -40,8 +40,8 @@ function renderNavigation() {
             a.textContent = page.title;
             a.onclick = (e) => {
                 e.preventDefault();
-                loadPage(cat.name, page.slug);
-                window.location.hash = `${cat.name}/${page.slug}`;
+                loadPage(cat.title, page.slug);
+                window.location.hash = `${cat.title}/${page.slug}`;
             };
             li.appendChild(a);
             pagesList.appendChild(li);
