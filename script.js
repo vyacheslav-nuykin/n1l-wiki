@@ -10,8 +10,8 @@ async function loadWiki() {
 
         const hash = window.location.hash.slice(1);
         if (hash) {
-            const [category, slug] = hash.split('/');
-            loadPage(category, slug);
+            const [categoryName, slug] = hash.split('/');
+            loadPage(categoryName, slug);
         }
     } catch (error) {
         document.getElementById('nav').innerHTML = '<div class="loading-nav">ошибка загрузки :(</div>';
@@ -34,18 +34,26 @@ function renderNavigation() {
         const pagesList = document.createElement('ul');
         pagesList.className = 'pages';
         
-        cat.pages.forEach(page => {
+        if (cat.pages && cat.pages.length > 0) {
+            cat.pages.forEach(page => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.textContent = page.title;
+                a.href = '#';
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    loadPage(cat.name, page.slug);
+                    window.location.hash = `${cat.name}/${page.slug}`;
+                };
+                li.appendChild(a);
+                pagesList.appendChild(li);
+            });
+        } else {
             const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.textContent = page.title;
-            a.onclick = (e) => {
-                e.preventDefault();
-                loadPage(cat.title, page.slug);
-                window.location.hash = `${cat.title}/${page.slug}`;
-            };
-            li.appendChild(a);
+            li.textContent = 'скоро...';
+            li.style.opacity = '0.5';
             pagesList.appendChild(li);
-        });
+        }
         
         categoryDiv.appendChild(title);
         categoryDiv.appendChild(pagesList);
@@ -58,12 +66,12 @@ function renderNavigation() {
     });
 }
 
-async function loadPage(category, slug) {
+async function loadPage(categoryName, slug) {
     const contentDiv = document.getElementById('page-content');
     contentDiv.innerHTML = '<div class="loading-page">загрузка...</div>';
     
     try {
-        const response = await fetch(`${API_BASE}/pages/${category}/${slug}.json`);
+        const response = await fetch(`${API_BASE}/pages/${categoryName}/${slug}.json`);
         if (!response.ok) throw new Error('Page not found');
         const page = await response.json();
         
@@ -71,7 +79,7 @@ async function loadPage(category, slug) {
         contentDiv.innerHTML = `
             <h1>${page.title}</h1>
             <div class="meta" style="color:#4682dc; font-size:0.8rem; margin-bottom:1rem;">
-                обновлено: ${page.updated}
+                обновлено: ${page.updated || 'сегодня'}
             </div>
             <div class="markdown-body">${html}</div>
         `;
